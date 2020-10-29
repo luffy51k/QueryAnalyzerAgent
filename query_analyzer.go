@@ -525,7 +525,7 @@ func sendResultsToDB(host string) (err error) {
 			if err == nil {
 				localnow = localnow.In(location)
 			}
-			localnowFormat = localnow.Format("2006-01-02 15:04:05")
+			localnowFormat := localnow.Format("2006-01-02 15:04:05")
 			for checksum, data := range queryInfoCopyMap {
 				var upsert bool
 				if Params.RemoteDB.IncludeSample == 0 {
