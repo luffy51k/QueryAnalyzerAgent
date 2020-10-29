@@ -8,12 +8,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	mysql "github.com/go-sql-driver/mysql"
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
-	"github.com/google/gopacket/pcap"
-	MySQLProtocol "github.com/linkedin/QueryAnalyzerAgent/databases"
-	"github.com/spf13/viper"
 	"io/ioutil"
 	"log"
 	"net"
@@ -24,6 +18,13 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	mysql "github.com/go-sql-driver/mysql"
+	"github.com/google/gopacket"
+	"github.com/google/gopacket/layers"
+	"github.com/google/gopacket/pcap"
+	MySQLProtocol "github.com/linkedin/QueryAnalyzerAgent/databases"
+	"github.com/spf13/viper"
 )
 
 // Config struct to hold various sections of the config
@@ -481,13 +482,22 @@ func sendResultsToDB(host string) (err error) {
 	if err != nil {
 		log.Fatalf("ERROR: Unable to ping database - %s", err)
 	}
-
+	/*
+			queryInfoSQL := `INSERT INTO query_info (hostname, checksum, fingerprint, sample, firstseen, mintime, mintimeat, maxtime, maxtimeat)
+		                VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), ?, UTC_TIMESTAMP(), ?, UTC_TIMESTAMP())
+		                ON DUPLICATE KEY UPDATE
+		                sample = CASE WHEN maxtime >= ? THEN sample ELSE ? END,
+		                maxtimeat = CASE WHEN maxtime >= ? THEN maxtimeat ELSE UTC_TIMESTAMP() END,
+		                mintimeat = CASE WHEN mintime <= ? THEN mintimeat ELSE UTC_TIMESTAMP() END,
+		                maxtime = CASE WHEN maxtime >= ? THEN maxtime ELSE ? END,
+						mintime = CASE WHEN mintime <= ? THEN mintime ELSE ? END`
+	*/
 	queryInfoSQL := `INSERT INTO query_info (hostname, checksum, fingerprint, sample, firstseen, mintime, mintimeat, maxtime, maxtimeat)
-                VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), ?, UTC_TIMESTAMP(), ?, UTC_TIMESTAMP())
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP(), ?, CURRENT_TIMESTAMP(), ?, CURRENT_TIMESTAMP())
                 ON DUPLICATE KEY UPDATE
                 sample = CASE WHEN maxtime >= ? THEN sample ELSE ? END,
-                maxtimeat = CASE WHEN maxtime >= ? THEN maxtimeat ELSE UTC_TIMESTAMP() END,
-                mintimeat = CASE WHEN mintime <= ? THEN mintimeat ELSE UTC_TIMESTAMP() END,
+                maxtimeat = CASE WHEN maxtime >= ? THEN maxtimeat ELSE CURRENT_TIMESTAMP() END,
+                mintimeat = CASE WHEN mintime <= ? THEN mintimeat ELSE CURRENT_TIMESTAMP() END,
                 maxtime = CASE WHEN maxtime >= ? THEN maxtime ELSE ? END,
                 mintime = CASE WHEN mintime <= ? THEN mintime ELSE ? END`
 	queryInfoSQLHandle, err := db.Prepare(queryInfoSQL)
@@ -510,7 +520,11 @@ func sendResultsToDB(host string) (err error) {
 			queryHistoryCols := make([]string, 0, queryInfoMapLength)
 			vals := make([]interface{}, 0, queryInfoMapLength*6)
 			utcnow := time.Now().UTC().Format("2006-01-02 15:04:05")
-
+			localnow := utcnow
+			location, err := time.LoadLocation("Asia/Ho_Chi_Minh")
+			if err == nil {
+				localnow = localnow.In(location)
+			}
 			for checksum, data := range queryInfoCopyMap {
 				var upsert bool
 				if Params.RemoteDB.IncludeSample == 0 {
@@ -519,17 +533,17 @@ func sendResultsToDB(host string) (err error) {
 
 				// Uncomment these lines if pseudo GTID has to be ignored
 				/*
-				// Ignore pseudo GTID
-				if strings.Contains(data.sample, "drop view if exists `_pseudo_gtid_`") {
-					delete(queryMetaMap, data.checksum)
-					delete(queryInfoCopyMap, checksum)
-					continue
-				}
+					// Ignore pseudo GTID
+					if strings.Contains(data.sample, "drop view if exists `_pseudo_gtid_`") {
+						delete(queryMetaMap, data.checksum)
+						delete(queryInfoCopyMap, checksum)
+						continue
+					}
 				*/
 
 				queryHistoryCols = append(queryHistoryCols, "(?,?,?,?,?,?,?,?,?)")
-				vals = append(vals, host, data.checksum, data.src, data.user, data.db, utcnow, data.count, data.queryTime, data.bytesIn)
-
+				// vals = append(vals, host, data.checksum, data.src, data.user, data.db, utcnow, data.count, data.queryTime, data.bytesIn)
+				vals = append(vals, host, data.checksum, data.src, data.user, data.db, localnow, data.count, data.queryTime, data.bytesIn)
 				delete(queryInfoCopyMap, checksum)
 
 				queryMetaMapHandle, exists := queryMetaMap[data.checksum]
