@@ -519,11 +519,12 @@ func sendResultsToDB(host string) (err error) {
 		if sendResults == true && queryInfoMapLength > 0 {
 			queryHistoryCols := make([]string, 0, queryInfoMapLength)
 			vals := make([]interface{}, 0, queryInfoMapLength*6)
-			utcnow := time.Now().UTC().Format("2006-01-02 15:04:05")
-			localnow := utcnow
+			// utcnow := time.Now().UTC().Format("2006-01-02 15:04:05")
+			localnow := time.Now().UTC()
 			location, err := time.LoadLocation("Asia/Ho_Chi_Minh")
 			if err == nil {
 				localnow = localnow.In(location)
+				localnow = localnow.Format("2006-01-02 15:04:05")
 			}
 			for checksum, data := range queryInfoCopyMap {
 				var upsert bool
