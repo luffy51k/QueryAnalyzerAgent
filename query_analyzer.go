@@ -520,13 +520,12 @@ func sendResultsToDB(host string) (err error) {
 			queryHistoryCols := make([]string, 0, queryInfoMapLength)
 			vals := make([]interface{}, 0, queryInfoMapLength*6)
 			// utcnow := time.Now().UTC().Format("2006-01-02 15:04:05")
-			utcnow := time.Now().UTC()
-			localnow := utcnow
+			localnow := time.Now().UTC()
 			location, err := time.LoadLocation("Asia/Ho_Chi_Minh")
 			if err == nil {
 				localnow = localnow.In(location)
-				localnow = localnow.Format("2006-01-02 15:04:05")
 			}
+			localnowFormat = localnow.Format("2006-01-02 15:04:05")
 			for checksum, data := range queryInfoCopyMap {
 				var upsert bool
 				if Params.RemoteDB.IncludeSample == 0 {
@@ -545,7 +544,7 @@ func sendResultsToDB(host string) (err error) {
 
 				queryHistoryCols = append(queryHistoryCols, "(?,?,?,?,?,?,?,?,?)")
 				// vals = append(vals, host, data.checksum, data.src, data.user, data.db, utcnow, data.count, data.queryTime, data.bytesIn)
-				vals = append(vals, host, data.checksum, data.src, data.user, data.db, localnow, data.count, data.queryTime, data.bytesIn)
+				vals = append(vals, host, data.checksum, data.src, data.user, data.db, localnowFormat, data.count, data.queryTime, data.bytesIn)
 				delete(queryInfoCopyMap, checksum)
 
 				queryMetaMapHandle, exists := queryMetaMap[data.checksum]
