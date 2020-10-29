@@ -520,7 +520,7 @@ func sendResultsToDB(host string) (err error) {
 			queryHistoryCols := make([]string, 0, queryInfoMapLength)
 			vals := make([]interface{}, 0, queryInfoMapLength*6)
 			// utcnow := time.Now().UTC().Format("2006-01-02 15:04:05")
-			utcnow = time.Now().UTC()
+			utcnow := time.Now().UTC()
 			localnow := utcnow
 			location, err := time.LoadLocation("Asia/Ho_Chi_Minh")
 			if err == nil {
