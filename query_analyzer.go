@@ -578,7 +578,7 @@ func sendResultsToDB(host string) (err error) {
 			}
 			// Doing batch insert
 			queryHistorySQL := fmt.Sprintf("INSERT INTO query_history (hostname, checksum, src, user, db, ts, count, querytime, bytes) VALUES %s", strings.Join(queryHistoryCols, ","))
-			_, err := db.Exec(queryHistorySQL, vals...)
+			_, err = db.Exec(queryHistorySQL, vals...)
 			if err != nil {
 				log.Printf("ERROR: Unable to insert into query_history table %s %s: %s", queryHistorySQL, vals, err)
 			}
