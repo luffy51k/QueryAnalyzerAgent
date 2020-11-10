@@ -544,6 +544,8 @@ func sendResultsToDB(host string) (err error) {
 
 				queryHistoryCols = append(queryHistoryCols, "(?,?,?,?,?,?,?,?,?)")
 				// vals = append(vals, host, data.checksum, data.src, data.user, data.db, utcnow, data.count, data.queryTime, data.bytesIn)
+				data.user = "Unknown"
+				data.db = "Unknown"
 				vals = append(vals, host, data.checksum, data.src, data.user, data.db, localnowFormat, data.count, data.queryTime, data.bytesIn)
 				delete(queryInfoCopyMap, checksum)
 
