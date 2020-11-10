@@ -465,9 +465,9 @@ func sendResultsToDB(host string) (err error) {
 			Certificates:       clientCert,
 			InsecureSkipVerify: selfsigned,
 		})
-		conn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?tls=custom&autocommit=true&charset=utf8mb4&collation=utf8mb4_unicode_ci", Params.RemoteDB.Username, Params.RemoteDB.Password, Params.RemoteDB.Hostname, Params.RemoteDB.Port, Params.RemoteDB.DBName)
+		conn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?tls=custom&autocommit=true&charset=utf8mb4&collation=utf8mb4_unicode_ci&useUnicode=yes", Params.RemoteDB.Username, Params.RemoteDB.Password, Params.RemoteDB.Hostname, Params.RemoteDB.Port, Params.RemoteDB.DBName)
 	} else {
-		conn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?tls=%s&autocommit=true&charset=utf8mb4&collation=utf8mb4_unicode_ci", Params.RemoteDB.Username, Params.RemoteDB.Password, Params.RemoteDB.Hostname, Params.RemoteDB.Port, Params.RemoteDB.DBName, tlsmode)
+		conn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?tls=%s&autocommit=true&charset=utf8mb4&collation=utf8mb4_unicode_ci&useUnicode=yes", Params.RemoteDB.Username, Params.RemoteDB.Password, Params.RemoteDB.Hostname, Params.RemoteDB.Port, Params.RemoteDB.DBName, tlsmode)
 	}
 
 	db, err = sql.Open("mysql", conn)
